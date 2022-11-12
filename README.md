@@ -1,397 +1,657 @@
-# SQL - Cumulative Lab
+# Pandas Data Cleaning - Cumulative Lab
 
 ## Introduction
-
-In this lesson, we'll run through some practice questions to reinforce your knowledge of SQL queries.
+In this lab, we'll make use of everything we've learned about pandas, data cleaning, and exploratory data analysis. In order to complete this lab, you'll have to import, clean, combine, reshape, and visualize data to answer questions provided, as well as your own questions!
 
 ## Objectives
-
 You will be able to:
+- Practice opening and inspecting the contents of CSVs using pandas dataframes
+- Practice identifying and handling missing values
+- Practice identifying and handling invalid values
+- Practice cleaning text data by removing whitespace and fixing typos
+- Practice joining multiple dataframes
 
-- Practice interpreting "word problems" and translating them into SQL queries
-- Practice deciding and performing whichever type of `JOIN` is best for retrieving desired data
-- Practice using `GROUP BY` statements in SQL to apply aggregate functions like `COUNT`, `MAX`, `MIN`, and `SUM`
-- Practice using the `HAVING` clause to compare different aggregates
-- Practice writing subqueries to decompose complex queries
+## Your Task: Clean the Superheroes Dataset with Pandas
 
-## Your Task: Querying a Customer Database
+![LEGO superheroes](images/lego_superheroes.jpg)
 
-![shelves filled with colorful model cars](images/model_cars.jpg)
+Photo by <a href="https://unsplash.com/@yuliamatvienko?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Yulia Matvienko</a> on <a href="/s/photos/superhero?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 
-Photo by <a href="https://unsplash.com/@bright?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Karen Vardazaryan</a> on <a href="/s/photos/model-car?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+### Data Understanding
+In this lab, we'll work with a version of the comprehensive Superheroes Dataset, which can be found on [Kaggle](https://www.kaggle.com/claudiodavi/superhero-set/data) and was originally scraped from [SuperHeroDb](https://www.superherodb.com/). We have modified the structure and contents of the dataset somewhat for the purposes of this lab.  Note that this data was collected in June 2017, so it may not reflect the most up-to-date superhero lore.
+
+The data is contained in two separate CSV files:
+
+1. `heroes_information.csv`: each record represents a superhero, with attributes of that superhero (e.g. eye color). Height is measured in centimeters, and weight is measured in pounds.
+2. `super_hero_powers.csv`: each record represents a superpower, then has True/False values representing whether each superhero has that power
 
 ### Business Understanding
 
-Your employer makes miniature models of products such as classic cars, motorcycles, and planes. They want you to pull several reports on different segments of their past customers, in order to better understand past sales as well as determine which customers will receive promotional material.
+The business questions you have been provided are:
 
-### Data Understanding
+1. What is the distribution of superheroes by publisher?
+2. What is the relationship between height and number of superpowers? And does this differ based on gender?
+3. What are the 5 most common superpowers in Marvel Comics vs. DC Comics?
 
-You may remember this database from a previous lab. As a refresher, here's the ERD diagram for this database:
+This lab also simulates something you are likely to encounter at some point or another in your career in data science: someone has given you access to a dataset, as well as a few questions, and has told you to "find something interesting".
 
-<img src='images/Database-Schema.png'>
+So, in addition to completing the basic data cleaning tasks and the aggregation and reshaping tasks needed to answer the provided questions, you will also need to formulate a question of your own and perform any additional cleaning/aggregation/reshaping that is needed to answer it.
 
-The queries you are asked to write will become more complex over the course of the lab.
+### Requirements
 
-## Getting Started
+#### 1. Load the Data with Pandas
 
-As in previous labs, we'll make use of the `sqlite3` library as well as `pandas`. By combining them, we'll be able to write queries as Python strings, then display the results in a conveniently-formatted table.
+Create a dataframes `heroes_df` and `powers_df` that represent the two CSV files. Use pandas methods to inspect the shape and other attributes of these dataframes.
 
-***Note:*** Throughout this lesson, the only thing you will need to change is the content of the strings containing SQL queries. You do NOT need to modify any of the code relating to `pandas`; this is just to help make the output more readable.
+#### 2. Perform Data Cleaning Required to Answer First Question
+
+The first question is: *What is the distribution of superheroes by publisher?*
+
+In order to answer this question, you will need to:
+
+* Identify and handle missing values
+* Identify and handle text data requiring cleaning
+
+#### 3. Perform Data Aggregation and Cleaning Required to Answer Second Question
+
+The second question is: *What is the relationship between height and number of superpowers? And does this differ based on gender?*
+
+In order to answer this question, you will need to:
+
+* Join the dataframes together
+* Identify and handle invalid values
+
+#### 4. Perform Data Aggregation Required to Answer Third Question
+
+The third question is: *What are the 5 most common superpowers in Marvel Comics vs. DC Comics?*
+
+This should not require any additional data cleaning or joining of tables, but it will require some additional aggregation.
+
+#### 5. Formulate and Answer Your Own Question
+
+This part is fairly open-ended. Think of a question that can be answered with the available data, and perform any cleaning or aggregation required to answer that question.
+
+## 1. Load the Data with Pandas
 
 In the cell below, we:
 
-* Import the necessary libraries, `pandas` and `sqlite3`
-* Establish a connection to the database `data.sqlite`, called `conn`
+* Import and alias `pandas` as `pd`
+* Import and alias `numpy` as `np`
+* Import and alias `seaborn` as `sns`
+* Import and alias `matplotlib.pyplot` as `plt`
+* Set Matplotlib visualizations to display inline in the notebook
 
 
 ```python
 # Run this cell without changes
-import sqlite3
+
 import pandas as pd
-
-conn = sqlite3.Connection("data.sqlite")
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
 ```
 
-The basic structure of a query in this lab is:
+### Superheroes
 
-* Write the SQL query inside of the Python string
-* Use `pd.read_sql` to display the results of the query in a formatted table
+In the cell below, load `heroes_information.csv` as `heroes_df`:
 
-For example, if we wanted to select a list of all product lines from the company, that would look like this:
+
+```python
+# Your code here
+
+heroes_df.head()
+```
+
+It looks like that CSV came with an index column, resulting in an extra column called `Unnamed: 0`. We don't need that column, so write code to get rid of it below.
+
+There are two ways to do this:
+
+1. Re-load with `read_csv`, and specify the parameter `index_col=0`
+2. Drop the column `Unnamed: 0` with `axis=1`
+
+
+```python
+# Your code here
+
+heroes_df.head()
+```
+
+The following code checks that the dataframe was loaded correctly.
 
 
 ```python
 # Run this cell without changes
-q0 = """
-SELECT productline
-FROM productlines
-;
-"""
 
-pd.read_sql(q0, conn)
+# There should be 734 rows
+assert heroes_df.shape[0] == 734
+
+# There should be 10 columns. If this fails, make sure you got rid of
+# the extra index column
+assert heroes_df.shape[1] == 10
+
+# These should be the columns
+assert list(heroes_df.columns) == ['name', 'Gender', 'Eye color', 'Race',
+ 'Hair color', 'Height', 'Publisher', 'Skin color', 'Alignment', 'Weight']
 ```
 
-From now on, you will replace `None` within these Python strings with the actual SQL query code.
+Now you want to get familiar with the data.  This step includes:
 
-## Part 1: Basic Queries
+* Understanding the dimensionality of your dataset
+* Investigating what type of data it contains, and the data types used to store it
+* Discovering how missing values are encoded, and how many there are
+* Getting a feel for what information it does and doesn't contain
 
-First, let's review some basic SQL queries, which do not require any joining, aggregation, or subqueries.
-
-### Query 1: Customers with Credit Over 25,000 in California
-Write a query that gets the contact first name, contact last name, phone number, address line 1, and credit limit for all customers in California with a credit limit greater than 25000.00.
-
-(California means that the `state` value is `'CA'`.)
-
-#### Expected Output
-
-<img src='images/expected_output_q1.png'>
+In the cell below, inspect the overall shape of the dataframe:
 
 
 ```python
-# Replace None with appropriate SQL code
-q1 = """
+# Your code here
+```
+
+Now let's look at the info printout:
+
+
+```python
+# Run this cell without changes
+heroes_df.info()
+```
+
+In the cell below, interpret that information. Do the data types line up with what we expect? Are there any missing values?
+
+
+```python
+# Replace None with appropriate text
+"""
 None
-;
 """
-
-q1_result = pd.read_sql(q1, conn)
-q1_result
 ```
 
-The following code checks that your result is correct:
+### Superpowers
+
+Now, repeat the same process with `super_hero_powers.csv`. Name the dataframe `powers_df`. This time, make sure you use `index_col=0` when opening the CSV because the index contains important information.
+
+
+```python
+# Your code here (create more cells as needed)
+```
+
+The following code will check if it was loaded correctly:
 
 
 ```python
 # Run this cell without changes
 
-# Testing which columns are returned
-assert list(q1_result.columns) == ['contactFirstName', 'contactLastName', 'phone', 'addressLine1', 'creditLimit']
+# There should be 167 rows, 667 columns
+assert powers_df.shape == (167, 667)
 
-# Testing how many rows are returned
-assert len(q1_result) == 10
+# The first column should be '3-D Man'
+assert powers_df.columns[0] == '3-D Man'
 
-# Testing the values in the first result
-assert list(q1_result.iloc[0]) == ['Susan', 'Nelson', '4155551450', '5677 Strong St.', 210500]
+# The last column should be 'Zoom'
+assert powers_df.columns[-1] == 'Zoom'
+
+# The first index should be 'Agility'
+assert powers_df.index[0] == 'Agility'
+
+# The last index should be 'Omniscient'
+assert powers_df.index[-1] == 'Omniscient'
 ```
 
-### Query 2: Customers Outside of the USA with "Collect" in Their Name
+## 2. Perform Data Cleaning Required to Answer First Question
 
-Write a query that gets the customer name, state, and country, for all customers outside of the USA with `"Collect"` as part of their customer name.
+Recall that the first question is: *What is the distribution of superheroes by publisher?*
 
-We are looking for customers with names like `"Australian Collectors, Co."` or `"BG&E Collectables"`, where `country` is not `"USA"`.
+To answer this question, we will only need to use `heroes_df`, which contains the `Publisher` column.
 
-#### Expected Output
+### Identifying and Handling Missing Values
 
-<img src='images/expected_output_q2.png'>
+As you likely noted above, the `Publisher` column is missing some values. Let's take a look at some samples with and without missing publisher values:
 
 
 ```python
-# Replace None with appropriate SQL code
-q2 = """
+# Run this cell without changes
+has_publisher_sample = heroes_df[heroes_df["Publisher"].notna()].sample(5, random_state=1)
+has_publisher_sample
+```
+
+
+```python
+# Run this cell without changes
+missing_publisher_sample = heroes_df[heroes_df["Publisher"].isna()].sample(5, random_state=1)
+missing_publisher_sample
+```
+
+What do we want to do about these missing values?
+
+Recall that there are two general strategies for dealing with missing values:
+
+1. Fill in missing values (either using another value from the column, e.g. the mean or mode, or using some other value like "Unknown")
+2. Drop rows with missing values
+
+Write your answer below, and explain how it relates to the information we have:
+
+
+```python
+# Replace None with appropriate text
+"""
 None
-;
 """
-
-q2_result = pd.read_sql(q2, conn)
-q2_result
 ```
 
-The following code checks that your result is correct:
+Now, implement your chosen strategy using code. (You can also check the solution branch for the answer to the question above if you're really not sure.)
+
+
+```python
+# Your code here
+```
+
+Now there should be no missing values in the publisher column:
 
 
 ```python
 # Run this cell without changes
-
-# Testing which columns are returned
-assert list(q2_result.columns) == ['customerName', 'state', 'country']
-
-# Testing how many rows are returned
-assert len(q2_result) == 15
-
-# Testing the values in the first result
-assert list(q2_result.iloc[0]) == ['Australian Collectors, Co.', 'Victoria', 'Australia']
+assert heroes_df["Publisher"].isna().sum() == 0
 ```
 
-### Query 3: Customers without Null States
+### Identifying and Handling Text Data Requiring Cleaning
 
-Write a query that gets the full address (line 1, line 2, city, state, postal code, country) for all customers where the `state` field is not null.
+The overall field of natural language processing (NLP) is quite broad, and we're not going to get into any advanced text processing, but it's useful to be able to clean up minor issues in text data.
 
-Here we'll only display the first 10 results.
-
-#### Expected Output
-
-<img src='images/expected_output_q3.png'>
+Let's take a look at the counts of heroes grouped by publisher:
 
 
 ```python
-# Replace None with appropriate SQL code
-q3 = """
+# Run this cell without changes
+heroes_df["Publisher"].value_counts()
+```
+
+There are two cases where we appear to have data entry issues, and publishers that should be encoded the same have not been. In other words, there are four categories present that really should be counted as two categories (and you do not need specific comic book knowledge to be able to identify them).
+
+Identify those two cases below:
+
+
+```python
+# Replace None with appropriate text
+"""
 None
-;
 """
-
-q3_result = pd.read_sql(q3, conn)
-q3_result.head(10)
 ```
 
-The following code checks that your result is correct:
+Now, write some code to handle these cases. If you're not sure where to start, look at the pandas documentation for [replacing values](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.replace.html) and [stripping off whitespace](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.str.strip.html).
+
+
+```python
+# Your code here
+```
+
+Check your work below:
+
+
+```python
+# Run this cell without changes
+heroes_df["Publisher"].value_counts()
+```
+
+### Answering the Question
+
+Now we should be able to answer *What is the distribution of superheroes by publisher?*
+
+If your data cleaning was done correctly, this code should work without any further changes:
 
 
 ```python
 # Run this cell without changes
 
-# Testing which columns are returned
-assert list(q3_result.columns) == ['addressLine1', 'addressLine2', 'city', 'state', 'postalCode', 'country']
+# Set up plots
+fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(16, 5))
 
-# Testing how many rows are returned
-assert len(q3_result) == 49
+# Create variables for easier reuse
+value_counts = heroes_df["Publisher"].value_counts()
+top_5_counts = value_counts.iloc[:5]
 
-# Testing the values in the first result
-assert list(q3_result.iloc[0]) == ['8489 Strong St.', '', 'Las Vegas', 'NV', '83030', 'USA']
+# Plot data
+ax1.bar(value_counts.index, value_counts.values)
+ax2.bar(top_5_counts.index, top_5_counts.values)
+
+# Customize appearance
+ax1.tick_params(axis="x", labelrotation=90)
+ax2.tick_params(axis="x", labelrotation=45)
+ax1.set_ylabel("Count of Superheroes")
+ax2.set_ylabel("Count of Superheroes")
+ax1.set_title("Distribution of Superheroes by Publisher")
+ax2.set_title("Top 5 Publishers by Count of Superheroes");
 ```
 
-You have now completed all of the basic queries!
+## 3. Perform Data Aggregation and Cleaning Required to Answer Second Question
 
-## Part 2: Aggregate and Join Queries
+Recall that the second question is: *What is the relationship between height and number of superpowers? And does this differ based on gender?*
 
-### Query 4: Average Credit Limit by State in USA
+Unlike the previous question, we won't be able to answer this with just `heroes_df`, since information about height is contained in `heroes_df`, while information about superpowers is contained in `powers_df`.
 
-Write a query that gets the average credit limit per state in the USA.
+### Joining the Dataframes Together
 
-The two fields selected should be `state` and `average_credit_limit`, which is the average of the `creditLimit` field for that state.
-
-#### Expected Output
-
-<img src='images/expected_output_q4.png'>
+First, identify the shared key between `heroes_df` and `powers_df`. (Shared key meaning, the values you want to join on.) Let's look at them again:
 
 
 ```python
-# Replace None with appropriate SQL code
-q4 = """
+# Run this cell without changes
+heroes_df
+```
+
+
+```python
+# Run this cell without changes
+powers_df
+```
+
+In the cell below, identify the shared key, and your strategy for joining the data (e.g. what will one record represent after you join, will you do a left/right/inner/outer join):
+
+
+```python
+# Replace None with appropriate text
+"""
 None
-;
 """
-
-q4_result = pd.read_sql(q4, conn)
-q4_result
 ```
 
-The following code checks that your result is correct:
+In the cell below, create a new dataframe called `heroes_and_powers_df` that contains the joined data. You can look at the above answer in the solution branch if you're not sure where to start.
+
+***Hint:*** Note that the `.join` method requires that the two dataframes share an index ([documentation here](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.join.html)) whereas the `.merge` method can join using any columns ([documentation here](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.merge.html)). It is up to you which one you want to use.
+
+
+```python
+# Your code here (create more cells as needed)
+```
+
+Run the code below to check your work:
 
 
 ```python
 # Run this cell without changes
 
-# Testing which columns are returned
-assert list(q4_result.columns) == ['state', 'average_credit_limit']
+# Confirms you have created a dataframe with the specified name
+assert type(heroes_and_powers_df) == pd.DataFrame
 
-# Testing how many rows are returned
-assert len(q4_result) == 8
+# Confirms you have the right number of rows
+assert heroes_and_powers_df.shape[0] == 647
 
-# Testing the values in the first result
-first_result_list = list(q4_result.iloc[0])
-assert first_result_list[0] == 'CA' 
-assert round(first_result_list[1], 3) == round(83854.54545454546, 3)
+# Confirms you have the necessary columns
+# (If you modified the value of powers_df along the way, you might need to
+# modify this test. We are checking that all of the powers are present as
+# columns.)
+assert [power in heroes_and_powers_df.columns for power in powers_df.index]
+# (If you modified the value of heroes_df along the way, you mgith need to 
+# modify this as well. We are checking that all of the attribute columns from
+# heroes_df are present as columns in the joined df)
+assert [attribute in heroes_and_powers_df.columns for attribute in heroes_df.columns]
 ```
 
-### Query 5: Joining Customers and Orders
-
-Write a query that uses `JOIN` statements to get the customer name, order number, and status for all orders. Refer to the ERD above to understand which tables contain these pieces of information, and the relationship between these tables.
-
-We will only display the first 15 results.
-
-#### Expected Output
-
-<img src='images/expected_output_q5.png'>
+Now that we have created a joined dataframe, we can aggregate the number of superpowers by superhero. This code is written for you:
 
 
 ```python
-# Replace None with appropriate SQL code
-q5 = """
+# Run this cell without changes
+
+# Note: we can use sum() with True and False values and they will
+# automatically be cast to 1s and 0s
+heroes_and_powers_df["Power Count"] = sum([heroes_and_powers_df[power_name] for power_name in powers_df.index])
+heroes_and_powers_df
+```
+
+### Answering the Question
+
+Now we can plot the height vs. the count of powers:
+
+
+```python
+# Run this cell without changes
+
+fig, ax = plt.subplots(figsize=(16, 8))
+
+ax.scatter(
+    x=heroes_and_powers_df["Height"],
+    y=heroes_and_powers_df["Power Count"],
+    alpha=0.3
+)
+
+ax.set_xlabel("Height (cm)")
+ax.set_ylabel("Number of Superpowers")
+ax.set_title("Height vs. Power Count");
+```
+
+Hmm...what is that stack of values off below zero? What is a "negative" height?
+
+### Identifying and Handling Invalid values
+
+One of the trickier tasks in data cleaning is identifying invalid or impossible values. In these cases, you have to apply your domain knowledge rather than any particular computational technique. For example, if you were looking at data containing dates of past home sales, and one of those dates was 100 years in the future, pandas wouldn't flag that as an issue, but you as a data scientist should be able to identify it.
+
+In this case, we are looking at heights, which are 1-dimensional, positive numbers. In theory we could have a very tiny height close to 0 cm because the hero is microscopic, but it does not make sense that we would have a height below zero.
+
+Let's take a look at a sample of those negative heights:
+
+
+```python
+# Run this cell without changes
+heroes_and_powers_df[heroes_and_powers_df["Height"] < 0].sample(5, random_state=1)
+```
+
+It looks like not only are those heights negative, those weights are negative also, and all of them are set to exactly -99.0.
+
+It seems like this data source probably filled in -99.0 as the height or weight whenever it was unknown, instead of just leaving it as NaN.
+
+Depending on the purpose of the analysis, maybe this would be a useful piece of information, but for our current question, let's go ahead and drop the records where the height is -99.0. We'll make a new temporary dataframe to make sure we don't accidentally delete anything that will be needed in a future question.
+
+
+```python
+# Run this cell without changes
+question_2_df = heroes_and_powers_df[heroes_and_powers_df["Height"] != -99.0].copy()
+question_2_df
+```
+
+### Answering the Question, Again
+
+Now we can redo that plot without those negative heights:
+
+
+```python
+# Run this cell without changes
+
+fig, ax = plt.subplots(figsize=(16, 8))
+
+ax.scatter(
+    x=question_2_df["Height"],
+    y=question_2_df["Power Count"],
+    alpha=0.3
+)
+
+ax.set_xlabel("Height (cm)")
+ax.set_ylabel("Number of Superpowers")
+ax.set_title("Height vs. Power Count");
+```
+
+Ok, that makes more sense. It looks like there is not much of a relationship between height and number of superpowers.
+
+Now we can go on to answering the second half of question 2: *And does this differ based on gender?*
+
+To indicate multiple categories within a scatter plot, we can use color to add a third dimension:
+
+
+```python
+# Run this cell without changes
+
+fig, ax = plt.subplots(figsize=(16, 8))
+
+# Select subsets
+question_2_male = question_2_df[question_2_df["Gender"] == "Male"]
+question_2_female = question_2_df[question_2_df["Gender"] == "Female"]
+question_2_other = question_2_df[(question_2_df["Gender"] != "Male") & (question_2_df["Gender"] != "Female")]
+
+# Plot data with different colors
+ax.scatter(
+    x=question_2_male["Height"],
+    y=question_2_male["Power Count"],
+    alpha=0.5,
+    color="cyan",
+    label="Male"
+)
+ax.scatter(
+    x=question_2_female["Height"],
+    y=question_2_female["Power Count"],
+    alpha=0.5,
+    color="gray",
+    label="Female"
+)
+ax.scatter(
+    x=question_2_other["Height"],
+    y=question_2_other["Power Count"],
+    alpha=0.5,
+    color="yellow",
+    label="Other"
+)
+
+# Customize appearance
+ax.set_xlabel("Height (cm)")
+ax.set_ylabel("Number of Superpowers")
+ax.set_title("Height vs. Power Count")
+ax.legend();
+```
+
+It appears that there is still no clear relationship between count of powers and height, regardless of gender. We do however note that "Male" is the most common gender, and that male superheroes tend to be taller, on average.
+
+## 4. Perform Data Aggregation Required to Answer Third Question
+
+Recall that the third question is: *What are the 5 most common superpowers in Marvel Comics vs. DC Comics?*
+
+We'll need to keep using `heroes_and_powers_df` since we require information from both `heroes_df` and `powers_df`.
+
+Your resulting `question_3_df` should contain aggregated data, with columns `Superpower Name`, `Marvel Comics` (containing the count of occurrences in Marvel Comics), and `DC Comics` (containing the count of occurrences in DC Comics). Each row should represent a superpower.
+
+In other words, `question_3_df` should look like this:
+
+![question 3 df](images/question_3.png)
+
+Don't worry if the rows or columns are in a different order, all that matters is that you have the right rows and columns with all the data.
+
+***Hint:*** refer to the [documentation for `.groupby`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.groupby.html) and treat each publisher as a group.
+
+
+```python
+# Your code here (create more cells as needed)
+```
+
+The code below checks that you have the correct dataframe structure:
+
+
+```python
+# Run this cell without changes
+
+# Checking that you made a dataframe called question_3_df
+assert type(question_3_df) == pd.DataFrame
+
+# Checking the shape
+assert question_3_df.shape == (167, 3)
+
+# Checking the column names
+assert sorted(list(question_3_df.columns)) == ['DC Comics', 'Marvel Comics', 'Superpower Name']
+```
+
+### Answering the Question
+
+The code below uses the dataframe you created to find and plot the most common superpowers in Marvel Comics and DC Comics.
+
+
+```python
+# Run this cell without changes
+
+marvel_most_common = question_3_df.drop("DC Comics", axis=1)
+marvel_most_common = marvel_most_common.sort_values(by="Marvel Comics", ascending=False)[:5]
+marvel_most_common
+```
+
+
+```python
+# Run this cell without changes
+
+dc_most_common = question_3_df.drop("Marvel Comics", axis=1)
+dc_most_common = dc_most_common.sort_values(by="DC Comics", ascending=False)[:5]
+dc_most_common
+```
+
+
+```python
+# Run this cell without changes
+
+fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(15, 5))
+
+ax1.bar(
+    x=marvel_most_common["Superpower Name"],
+    height=marvel_most_common["Marvel Comics"]
+)
+ax2.bar(
+    x=dc_most_common["Superpower Name"],
+    height=dc_most_common["DC Comics"]
+)
+
+ax1.set_ylabel("Count of Superheroes")
+ax2.set_ylabel("Count of Superheroes")
+ax1.set_title("Frequency of Top Superpowers in Marvel Comics")
+ax2.set_title("Frequency of Top Superpowers in DC Comics");
+```
+
+It looks like super strength is the most popular power in both Marvel Comics and DC Comics. Overall, the top 5 powers are fairly similar — 4 out of 5 overlap, although Marvel contains agility whereas DC contains flight.
+
+## 5. Formulate and Answer Your Own Question
+
+For the remainder of this lab, you'll be focusing on coming up with and answering your own question, just like we did above.  Your question should not be overly simple, and should require both descriptive statistics and data visualization to answer.  In case you're unsure of what questions to ask, some sample questions have been provided below.
+
+Pick one of the following questions to investigate and answer, or come up with one of your own!
+
+* Which powers have the highest chance of co-occurring in a hero (e.g. super strength and flight)?
+* What is the distribution of skin colors amongst alien heroes?
+* How are eye color and hair color related in this dataset?
+
+Explain your question below:
+
+
+```python
+# Replace None with appropriate text:
+"""
 None
-;
 """
-q5_result = pd.read_sql(q5, conn)
-q5_result.head(15)
 ```
 
-The following code checks that your result is correct:
+Some sample cells have been provided to give you room to work. Feel free to create more cells as needed.
+
+Be sure to include thoughtful, well-labeled visualizations to back up your analysis!
+
+(There is no solution branch for this part, and feel free to move on to the next lesson if you have already spent more than 90 minutes.)
 
 
 ```python
-# Run this cell without changes
 
-# Testing which columns are returned
-assert list(q5_result.columns) == ['customerName', 'orderNumber', 'status']
-
-# Testing how many rows are returned
-assert len(q5_result) == 326
-
-# Testing the values in the first result
-assert list(q5_result.iloc[0]) == ['Atelier graphique', 10123, 'Shipped']
 ```
-
-### Query 6: Total Payments
-
-Write a query that uses `JOIN` statements to get top 10 customers in terms of total payment amount. Find the customer name, customer number, and sum of all payments made. The results should be ordered by the sum of payments made, starting from the highest value.
-
-The three columns selected should be `customerName`, `customerNumber` and `total_payment_amount`.
-
-#### Expected Output
-
-<img src='images/expected_output_q6.png'>
 
 
 ```python
-# Replace None with appropriate SQL code
-q6 = """
-None
-;
-"""
-q6_result = pd.read_sql(q6, conn)
-q6_result
-```
 
-The following code checks that your result is correct:
+```
 
 
 ```python
-# Run this cell without changes
 
-# Testing which columns are returned
-assert list(q6_result.columns) == ['customerName', 'customerNumber', 'total_payment_amount']
-
-# Testing how many rows are returned
-assert len(q6_result) == 10
-
-# Testing the values in the first result
-assert list(q6_result.iloc[0]) == ['Euro+ Shopping Channel', 141, 715738.98]
 ```
-
-### Query 7: Products that Have Been Purchased 10 or More Times
-
-Write a query that, for each customer, finds all of the products that they have purchased 10 or more times cumulatively. For each record, return  the customer name, customer number, product name, product code, and total number ordered. Sort the rows in descending order by the quantity ordered.
-
-The five columns selected should be `customerName`, `customerNumber`, `productName`, `productCode`, and `total_ordered`, where `total_ordered` is the sum of all quantities of that product ordered by that customer.
-
-**_Hint_**: For this one, you'll need to make use of `HAVING`, `GROUP BY`, and `ORDER BY` — make sure you get the order of them correct!
-
-#### Expected Output
-
-<img src='images/expected_output_q7.png'>
 
 
 ```python
-# Replace None with approprite SQL code
-q7 = """
-None
-;
-"""
-q7_result = pd.read_sql(q7, conn)
-q7_result
-```
 
-The following code checks that your result is correct:
+```
 
 
 ```python
-# Run this cell without changes
 
-# Testing which columns are returned
-assert list(q7_result.columns) == ['customerName', 'customerNumber', 'productName', 'productCode', 'total_ordered']
-
-# Testing how many rows are returned
-assert len(q7_result) == 2531
-
-# Testing the values in the first result
-assert list(q7_result.iloc[0]) == ['Petit Auto', 314, '1913 Ford Model T Speedster', 'S18_2949', 10]
-```
-
-### Query 8: Employees in Offices with Fewer than Five Employees
-
-Finally, get the first name, last name, employee number, and office code for employees from offices with fewer than 5 employees.
-
-***Hint:*** Use a subquery to find the relevant offices.
-
-#### Expected Output
-
-<img src='images/expected_output_q8.png'>
-
-
-```python
-# Replace None with approprite SQL code
-q8 = """
-None
-;
-"""
-q8_result = pd.read_sql(q8, conn)
-q8_result
-```
-
-The following code checks that your result is correct:
-
-
-```python
-# Run this cell without changes
-
-# Testing which columns are returned
-assert list(q8_result.columns) == ['lastName', 'firstName', 'employeeNumber', 'officeCode']
-
-# Testing how many rows are returned
-assert len(q8_result) == 12
-
-# Testing the values in the first result
-assert list(q8_result.iloc[0]) == ['Patterson', 'William', 1088, 6]
-```
-
-Now that we are finished writing queries, close the connection to the database:
-
-
-```python
-# Run this cell without changes
-conn.close()
 ```
 
 ## Summary
 
-In this lesson, we produced several data queries for a model car company, mainly focused around its customer data. Along the way, we reviewed many of the major concepts and keywords associated with SQL `SELECT` queries: `FROM`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY`, `JOIN`, `SUM`, `COUNT`, and `AVG`.
+In this lab, you demonstrated your mastery of using pandas to clean and aggregate data in order to answer several business questions. This included identifying and handling missing values, text requiring preprocessing, and invalid values. You also performed aggregation and reshaping tasks such as transposing, joining, and grouping data. Great job, there was a lot here!
